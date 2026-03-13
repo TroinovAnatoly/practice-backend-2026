@@ -4,71 +4,51 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Resource;
 
 class ResourceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
-        return Resource::all();
+        $resources = Resource::all();
+        return response()->json($resources);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        if(auth()->user()->role !== 'admin'){
-            return response()->json(['message'=>'Forbidden'],403);
-        }
-
-        $validated = $request->validate([
-            'name'=>'required|string',
-            'capacity'=>'required|integer|min:1',
-            'location'=>'required|string'
+        $request->validate([
+            'name' => 'required|string',
+            'description' => 'nullable|string',
+            'capacity' => 'required|integer',
+            'floor' => 'required|integer',
+            'has_projector' => 'required|boolean',
+            'has_whiteboard' => 'required|boolean',
         ]);
 
-        $resource = Resource::create($validated);
+        $resource = Resource::create($request->all());
 
         return response()->json($resource,201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request,$id)
     {
         $resource = Resource::findOrFail($id);
 
-        $validated = $request->validate([
-            'name'=>'string',
-            'capacity'=>'integer|min:1',
-            'location'=>'string'
-        ]);
+        $resource->update($request->all());
 
-        $resource->update($validated);
-
-        return $resource;
+        return response()->json($resource);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         $resource = Resource::findOrFail($id);
+
         $resource->delete();
 
-        return response()->json(['message'=>'Deleted']);
+        return response()->json([
+            'message'=>'Resource deleted'
+        ]);
     }
+
 }
