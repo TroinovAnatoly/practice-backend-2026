@@ -17,4 +17,11 @@ class Resource extends Model
         'has_projector',
         'has_whiteboard'
     ];
+
+    public function bookings() {
+    return $this->hasMany(Booking::class);
+    }
+    public function reviews() {
+        return $this->hasManyThrough(Review::class, Booking::class);
+    }
 }

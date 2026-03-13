@@ -10,6 +10,22 @@ use Illuminate\Support\Facades\Log;
 class BookingController extends Controller
 {
 
+    public function index(Request $request)
+    {
+        $query = Booking::with('resource')->where('user_id', auth()->id());
+
+        if ($request->has('resource_id')) {
+            $query->where('resource_id', $request->resource_id);
+        }
+
+        if ($request->has('date')) {
+            $query->whereDate('start_time', $request->date);
+        }
+
+        $bookings = $query->orderBy('start_time', 'asc')->paginate(10);
+        return response()->json($bookings);
+    }
+
     public function store(Request $request)
     {
         $request->validate([

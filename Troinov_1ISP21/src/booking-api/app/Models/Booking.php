@@ -17,15 +17,17 @@ class Booking extends Model
         'status'
     ];
 
-    // связь с ресурсом
     public function resource()
     {
         return $this->belongsTo(Resource::class);
     }
 
-    // связь с пользователем
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function reviews() {
+        return $this->hasMany(Review::class);
     }
 }

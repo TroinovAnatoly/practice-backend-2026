@@ -9,9 +9,45 @@ use App\Models\Resource;
 class ResourceController extends Controller
 {
 
-    public function index()
-    {
-        $resources = Resource::all();
+    public function index(Request $request) {
+        $query = Resource::query();
+
+        // Фильтры
+        if ($request->has('floor')) {
+            $query->where('floor', $request->floor);
+        }
+        if ($request->has('has_projector')) {
+            $query->where('has_projector', $request->has_projector);
+        }
+        if ($request->has('has_whiteboard')) {
+            $query->where('has_whiteboard', $request->has_whiteboard);
+        }
+        if ($request->has('min_capacity')) {
+            $query->where('capacity', '>=', $request->min_capacity);
+        }
+
+        // Поиск по имени или описанию
+        if ($request->has('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%'.$request->search.'%')
+                ->orWhere('description', 'like', '%'.$request->search.'%');
+            });
+        }
+
+        // Сортировка
+        $sortBy = $request->get('sort_by', 'name'); // имя по умолчанию
+        $sortOrder = $request->get('sort_order', 'asc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        // Пагинация
+        $resources = $query->paginate(10);
+
+        // Добавление среднего рейтинга
+        $resources->getCollection()->transform(function($resource){
+            $resource->average_rating = $resource->reviews()->avg('rating');
+            return $resource;
+        });
+
         return response()->json($resources);
     }
 
